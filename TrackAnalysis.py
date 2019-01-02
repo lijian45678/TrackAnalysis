@@ -3,6 +3,9 @@ import numpy as np
 import sys
 import os
 from math import radians, cos, sin, asin, sqrt
+import scipy
+import scipy.cluster.hierarchy as sch
+import matplotlib.pylab as plt
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
@@ -95,7 +98,7 @@ def get_address_distance(lat1,lon1,lat2,lon2):
 if __name__ == '__main__':
     startTime1 = time.time()
     listData = [] #轨迹序列
-    rootdir = '.\\Geolife Trajectories 1.3\\Data\\000\\Trajectory'
+    rootdir = 'C:\\Users\\lcy\\Desktop\\HardwareSimulator\\TrackAnalysis\\Geolife Trajectories 1.3\\Data\\000\\Trajectory'
     list = os.listdir(rootdir)  # 列出文件夹下所有的目录与文件
     for i in range(0, len(list)):
         path = os.path.join(rootdir, list[i])
@@ -152,9 +155,18 @@ if __name__ == '__main__':
     #对驻留点序列进行层次聚类
     # coding:UTF-8
     # Hierarchical clustering 层次聚类
-    k,l = hcluster(clusteringList[0:1000],8)
-    print(l)
-    stopTime1 =time.time()
+    # k,l = hcluster(clusteringList[0:1000],8)
+    # print(l)
+    # stopTime1 =time.time()
+    disMat = sch.distance.pdist(clusteringList[0:1000], 'euclidean')
+    # 进行层次聚类:
+    Z = sch.linkage(disMat, method='average')
+    # 将层级聚类结果以树状图表示出来并保存为plot_dendrogram.png
+    P = sch.dendrogram(Z)
+    plt.savefig('plot_1.png')
+    # 根据linkage matrix Z得到聚类结果:
+    cluster = sch.fcluster(Z, t=1)
+    print("Original cluster by hierarchy clustering:\n", cluster)
     print(compare_time(stopTime,startTime))
 
 
