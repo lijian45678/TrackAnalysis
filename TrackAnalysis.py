@@ -6,6 +6,9 @@ from math import radians, cos, sin, asin, sqrt
 import scipy
 import scipy.cluster.hierarchy as sch
 import matplotlib.pylab as plt
+import matplotlib.pyplot as plot
+from datetime import datetime
+from mpl_toolkits.mplot3d import Axes3D  # 空间三维画图
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
@@ -22,9 +25,9 @@ class ResidentPoint:
     def __init__(self ,  latitude =0.0, longitude =0.0 ,startTime='',stopTime ='',k=0):
         self.latitude =latitude
         self.longitude = longitude
-        self.startTime=startTime
-        self.stopTime =stopTime
-        self.k=k
+        self.startTime = startTime
+        self.stopTime = stopTime
+        self.k = k
 class bicluster:
     def __init__(self, vec, left=None, right=None, distance=0.0, id=None):
         self.left = left
@@ -98,7 +101,8 @@ def get_address_distance(lat1,lon1,lat2,lon2):
 if __name__ == '__main__':
     startTime1 = time.time()
     listData = [] #轨迹序列
-    rootdir = 'C:\\Users\\lcy\\Desktop\\HardwareSimulator\\TrackAnalysis\\Geolife Trajectories 1.3\\Data\\000\\Trajectory'
+    rootdir = 'C:\\Users\\LJ\\Desktop\\TA\\Geolife Trajectories 1.3\\Data\\000\\Trajectory'
+    #rootdir = 'C:\\Users\\lcy\\Desktop\\HardwareSimulator\\TrackAnalysis\\Geolife Trajectories 1.3\\Data\\000\\Trajectory'
     list = os.listdir(rootdir)  # 列出文件夹下所有的目录与文件
     for i in range(0, len(list)):
         path = os.path.join(rootdir, list[i])
@@ -112,12 +116,28 @@ if __name__ == '__main__':
                     listData.append(trackPoint)
             f.close()
 
-
+    x=[]
+    y=[]
+    z=[]
     for i in range(len(listData)-1):
             if compare_time(listData[i].time, listData[i + 1].time) >=0 :
                 print("轨迹点序列没有按时间排序")
 
     print('轨迹点序列排列正确，完成第一步')
+    fig = plot.figure()
+    # 得到画面
+    ax = Axes3D(fig)
+    # 得到3d坐标的图
+    #  画点
+    for i in listData:
+        x.append(i.latitude)
+        y.append(i.longitude)
+        z.append(int(time.mktime(time.strptime(i.time,'%Y-%m-%d %H:%M:%S'))))
+    for x in listData[1:100]:
+        ax.scatter(int(time.mktime(time.strptime(x.time,'%Y-%m-%d %H:%M:%S'))),
+                   x.latitude,x.longitude,c='r')
+    plot.savefig("轨迹点_image.png")
+    plot.show()
     # 驻留点集合
     clusteringList = []
     residentList = []
@@ -147,10 +167,20 @@ if __name__ == '__main__':
         i+=1
         clusteringList.append([sumx/k,sumy/k])
         residentList.append(ResidentPoint(sumx/k,sumy/k,startTime,stopTime,k))
+    x=[]
+    y=[]
+    z=[]
     for i in range(len(residentList)-1):
             if compare_time(residentList[i].stopTime,residentList[i].startTime ) <0 :
-                print("轨迹点序列没有按时间排序")
+                print("驻留点点序列没有按时间排序")
+    for i in residentList:
+        x.append(i.latitude)
+        y.append(i.longitude)
+        z.append(i.startTime)
     print('驻留点序列排列正确，完成第二步')
+    plot.scatter(x, y)
+    plot.show()
+    plot.savefig('驻留点图.png')
 
     #对驻留点序列进行层次聚类
     # coding:UTF-8
