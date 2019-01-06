@@ -14,7 +14,6 @@ curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 class TrackPoint:
-
     def __init__(self ,  latitude =0.0, longitude =0.0 ,time='' ):
         self.latitude =latitude
         self.longitude = longitude
@@ -35,46 +34,6 @@ class bicluster:
         self.vec = vec  # 保存两个数据聚类后形成新的中心
         self.id = id
         self.distance = distance
-def yezi(clust):
-        if clust.left == None and clust.right == None:
-            return [clust.id]
-        return yezi(clust.left) + yezi(clust.right)
-
-
-def Euclidean_distance(vector1, vector2):
-    TSum = sum([pow((vector1[i] - vector2[i]), 2) for i in range(len(vector1))])
-    SSum = sqrt(TSum)
-    return SSum
-
-
-def hcluster(blogwords, n):
-    biclusters = [bicluster(vec=blogwords[i], id=i) for i in range(len(blogwords))]
-    distances = {}
-    flag = None;
-    currentclusted = -1
-    while (len(biclusters) > n):  # 假设聚成n个类
-        min_val = 999999999999;  # Python的无穷大应该是inf
-        biclusters_len = len(biclusters)
-        for i in range(biclusters_len - 1):
-            for j in range(i + 1, biclusters_len):
-                if distances.get((biclusters[i].id, biclusters[j].id)) == None:
-                    distances[(biclusters[i].id, biclusters[j].id)] = Euclidean_distance(biclusters[i].vec,
-                                                                                         biclusters[j].vec)
-                d = distances[(biclusters[i].id, biclusters[j].id)]
-                if d < min_val:
-                    min_val = d
-                    flag = (i, j)
-        bic1, bic2 = flag  # 解包bic1 = i , bic2 = j
-        newvec = [(biclusters[bic1].vec[i] + biclusters[bic2].vec[i]) / 2 for i in
-                  range(len(biclusters[bic1].vec))]  # 形成新的类中心，平均
-        newbic = bicluster(newvec, left=biclusters[bic1], right=biclusters[bic2], distance=min_val,
-                           id=currentclusted)  # 二合一
-        currentclusted -= 1
-        del biclusters[bic2]  # 删除聚成一起的两个数据，由于这两个数据要聚成一起
-        del biclusters[bic1]
-        biclusters.append(newbic)  # 补回新聚类中心
-        clusters = [yezi(biclusters[i]) for i in range(len(biclusters))]  # 深度优先搜索叶子节点，用于输出显示
-    return biclusters, clusters
 
 def compare_time(time1,time2):
     s_time = time.mktime(time.strptime(time1,'%Y-%m-%d %H:%M:%S'))
@@ -115,72 +74,77 @@ if __name__ == '__main__':
                                             str(dataLineList[5]+' '+dataLineList[6]).split('\n')[0])
                     listData.append(trackPoint)
             f.close()
+        if len(listData) == 1000:
+            break
 
-    x=[]
-    y=[]
-    z=[]
     for i in range(len(listData)-1):
             if compare_time(listData[i].time, listData[i + 1].time) >=0 :
                 print("轨迹点序列没有按时间排序")
-
-    print('轨迹点序列排列正确，完成第一步')
-    fig = plot.figure()
-    # 得到画面
-    ax = Axes3D(fig)
+    print('轨迹点序列排列正确，完成第一步，总计点数是：',len(listData))
+    # fig = plot.figure()
+    # # 得到画面
+    # ax = Axes3D(fig)
+    # ax.set_xlabel('维度')
+    # ax.set_ylabel('经度')
+    # ax.set_zlabel('时间(秒)')
     # 得到3d坐标的图
     #  画点
-    for i in listData:
-        x.append(i.latitude)
-        y.append(i.longitude)
-        z.append(int(time.mktime(time.strptime(i.time,'%Y-%m-%d %H:%M:%S'))))
-    for x in listData[1:100]:
-        ax.scatter(int(time.mktime(time.strptime(x.time,'%Y-%m-%d %H:%M:%S'))),
-                   x.latitude,x.longitude,c='r')
-    plot.savefig("轨迹点_image.png")
-    plot.show()
+    # for i in listData:
+    #     x.append(i.latitude)
+    #     y.append(i.longitude)
+    #     z.append(int(time.mktime(time.strptime(i.time,'%Y-%m-%d %H:%M:%S'))))
+    # for x in listData[0:1000]:
+    #     ax.scatter(x.latitude,x.longitude,int(time.mktime(time.strptime(x.time,'%Y-%m-%d %H:%M:%S'))),
+    #                c='r')
+    #
+    # plot.savefig("轨迹点_1.png")
+    # plot.show()
     # 驻留点集合
     clusteringList = []
     residentList = []
     #停留时间阈值
-    Wt=100
-    #空间阈值
-    Wd=20
+    Wt=100000
+    #空间阈值0
+    Wd=200000
     # 异常点检测的聚类数
     Wn=20
     # 异常点集合
     R=()
     i=0
-
+    n=0
     #获取驻留点序列
     while i<(len(listData)-1):
-        sumx=0
-        sumy=0
+        sumLatitude=listData[i].latitude
+        sumLongitude=listData[i].longitude
         k=1
         startTime=listData[i].time
         while (compare_time(listData[i+1].time,listData[i].time)< Wt) and\
                 (get_address_distance(listData[i+1].latitude,listData[i+1].longitude,listData[i].latitude,listData[i].longitude)<Wd):
-             sumx+=listData[i].latitude
-             sumy+=listData[i].longitude
+             sumLatitude+=listData[i].latitude
+             sumLongitude+=listData[i].longitude
              k+=1
              i+=1
+             if i == len(listData)-1:
+                 break
         stopTime=listData[i].time
         i+=1
-        clusteringList.append([sumx/k,sumy/k])
-        residentList.append(ResidentPoint(sumx/k,sumy/k,startTime,stopTime,k))
-    x=[]
-    y=[]
-    z=[]
+        clusteringList.append([sumLatitude/k,sumLongitude/k])
+        residentList.append(ResidentPoint(sumLatitude/k,sumLongitude/k,startTime,stopTime,k))
+    #驻留点测试
     for i in range(len(residentList)-1):
             if compare_time(residentList[i].stopTime,residentList[i].startTime ) <0 :
-                print("驻留点点序列没有按时间排序")
-    for i in residentList:
-        x.append(i.latitude)
-        y.append(i.longitude)
-        z.append(i.startTime)
-    print('驻留点序列排列正确，完成第二步')
-    plot.scatter(x, y)
+                print("驻留点序列没有按时间排序")
+    print('驻留点序列排列正确，完成第二步,总计点数是：',len(residentList))
+    fig = plot.figure()
+    # 得到画面
+    ax = Axes3D(fig)
+    # 得到3d坐标的图
+    #  画点
+    for x in residentList:
+        ax.scatter(x.latitude, x.longitude, int(time.mktime(time.strptime(x.startTime, '%Y-%m-%d %H:%M:%S'))),
+                   c='r')
     plot.show()
-    plot.savefig('驻留点图.png')
+    plot.savefig('驻留点图_1.png')
 
     #对驻留点序列进行层次聚类
     # coding:UTF-8
@@ -188,16 +152,16 @@ if __name__ == '__main__':
     # k,l = hcluster(clusteringList[0:1000],8)
     # print(l)
     # stopTime1 =time.time()
-    disMat = sch.distance.pdist(clusteringList[0:1000], 'euclidean')
-    # 进行层次聚类:
-    Z = sch.linkage(disMat, method='average')
-    # 将层级聚类结果以树状图表示出来并保存为plot_dendrogram.png
-    P = sch.dendrogram(Z)
-    plt.savefig('plot_1.png')
-    # 根据linkage matrix Z得到聚类结果:
-    cluster = sch.fcluster(Z, t=1)
-    print("Original cluster by hierarchy clustering:\n", cluster)
-    print(compare_time(stopTime,startTime))
+    # disMat = sch.distance.pdist(clusteringList[0:1000], 'euclidean')
+    # # 进行层次聚类:
+    # Z = sch.linkage(disMat, method='average')
+    # # 将层级聚类结果以树状图表示出来并保存为plot_dendrogram.png
+    # P = sch.dendrogram(Z)
+    # plt.savefig('plot_1.png')
+    # # 根据linkage matrix Z得到聚类结果:
+    # cluster = sch.fcluster(Z, t=1)
+    # print("Original cluster by hierarchy clustering:\n", cluster)
+    # print(compare_time(stopTime,startTime))
 
 
 
