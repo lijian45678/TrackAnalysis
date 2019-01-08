@@ -74,8 +74,6 @@ if __name__ == '__main__':
                                             str(dataLineList[5]+' '+dataLineList[6]).split('\n')[0])
                     listData.append(trackPoint)
             f.close()
-        if len(listData) == 1000:
-            break
 
     for i in range(len(listData)-1):
             if compare_time(listData[i].time, listData[i + 1].time) >=0 :
@@ -135,16 +133,16 @@ if __name__ == '__main__':
             if compare_time(residentList[i].stopTime,residentList[i].startTime ) <0 :
                 print("驻留点序列没有按时间排序")
     print('驻留点序列排列正确，完成第二步,总计点数是：',len(residentList))
-    fig = plot.figure()
-    # 得到画面
-    ax = Axes3D(fig)
-    # 得到3d坐标的图
-    #  画点
-    for x in residentList:
-        ax.scatter(x.latitude, x.longitude, int(time.mktime(time.strptime(x.startTime, '%Y-%m-%d %H:%M:%S'))),
-                   c='r')
-    plot.show()
-    plot.savefig('驻留点图_1.png')
+    # fig = plot.figure()
+    # # 得到画面
+    # ax = Axes3D(fig)
+    # # 得到3d坐标的图
+    # #  画点
+    # for x in residentList:
+    #     ax.scatter(x.latitude, x.longitude, int(time.mktime(time.strptime(x.startTime, '%Y-%m-%d %H:%M:%S'))),
+    #                c='r')
+    # # plot.show()
+    # plot.savefig('驻留点图_1.png')
 
     #对驻留点序列进行层次聚类
     # coding:UTF-8
@@ -152,16 +150,26 @@ if __name__ == '__main__':
     # k,l = hcluster(clusteringList[0:1000],8)
     # print(l)
     # stopTime1 =time.time()
-    # disMat = sch.distance.pdist(clusteringList[0:1000], 'euclidean')
-    # # 进行层次聚类:
-    # Z = sch.linkage(disMat, method='average')
-    # # 将层级聚类结果以树状图表示出来并保存为plot_dendrogram.png
-    # P = sch.dendrogram(Z)
-    # plt.savefig('plot_1.png')
-    # # 根据linkage matrix Z得到聚类结果:
-    # cluster = sch.fcluster(Z, t=1)
-    # print("Original cluster by hierarchy clustering:\n", cluster)
-    # print(compare_time(stopTime,startTime))
+    disMat = sch.distance.pdist(clusteringList, 'euclidean')
+    # 进行层次聚类:
+    Z = sch.linkage(disMat, method='average')
+    # 将层级聚类结果以树状图表示出来并保存为plot_dendrogram.png
+    print(Z)
+    P = sch.dendrogram(Z)
+    plt.savefig('聚类_1.png')
+    # 根据linkage matrix Z得到聚类结果:
+    cluster = sch.fcluster(Z, t=0.5*disMat.max())
+    # lis = []
+    # for i in cluster:
+    #     lis.append(i)
+    # print(lis)
+    # n=set(lis)
+    # print(n)
+    # for i in n:
+    #     if lis.count(i)==1:
+    #         print(clusteringList[lis.index(i)])
+    print("Original cluster by hierarchy clustering:\n", cluster,cluster.__len__())
+    print(compare_time(stopTime,startTime))
 
 
 
