@@ -78,6 +78,7 @@ if __name__ == '__main__':
     for i in range(len(listData)-1):
             if compare_time(listData[i].time, listData[i + 1].time) >=0 :
                 print("轨迹点序列没有按时间排序")
+    # 数据清洗模块
     print('轨迹点序列排列正确，完成第一步，总计点数是：',len(listData))
     # fig = plot.figure()
     # # 得到画面
@@ -158,7 +159,7 @@ if __name__ == '__main__':
     P = sch.dendrogram(Z)
     plt.savefig('聚类_1.png')
     # 根据linkage matrix Z得到聚类结果:
-    cluster = sch.fcluster(Z, t=0.5*disMat.max())
+    cluster = sch.fcluster(Z, t=1)
     # lis = []
     # for i in cluster:
     #     lis.append(i)
